@@ -95,6 +95,14 @@ plot(pve, xlab="Principal Component", ylab= "Proportion of Variance Exmplained",
 
 #_______________________________________________
 ## | 5 | Principal Component Regression Lab
+# scale, check for collinearity, prune
+# create test and training sets
+# cross-validation on training to pick the components
+# model on the test set
+# vs. ridge and lasso
+
+
+
 set.seed(1000)
 # validation error 
 # cumulative percentage of variance explained
@@ -114,7 +122,7 @@ mean((pcr_pred - y_test)^2)
 
 # build example where even and odd variables are bringing in noisy images
 # of two different signals.
-set.seed(6587)
+# set.seed(6587)
 mkData <- function(n) {
   for(group in 1:10) {
     # y is the sum of two effects yA and yB
@@ -136,6 +144,21 @@ mkData <- function(n) {
   }
   d
 }
+
+extractProjection <- function(ndim,princ) {
+  # pull off the rotation.  
+  proj <- princ$rotation[,1:ndim] 
+  # sign was arbitrary, so flip in convenient form
+  for(i in seq_len(ndim)) {
+    si <- sign(mean(proj[,i]))
+    if(si!=0) {
+      proj[,i] <- proj[,i]*si
+    }
+  }
+  proj
+}
+
+
 # make data
 set.seed(23525)
 dTrain <- mkData(1000)
@@ -149,7 +172,7 @@ dTestIdeal <-  dTrain[,c('y',goodVars)]
 # do the PCA
 dmTrainIdeal <- as.matrix(dTrainIdeal[,goodVars])
 princIdeal <- prcomp(dmTrainIdeal,center = TRUE,scale. = TRUE)
-
+princIdeal
 # extract the principal components
 rot5Ideal <- extractProjection(5,princIdeal)
 
@@ -181,3 +204,41 @@ projectedTrainIdeal <-
 projectedTrainIdeal$y <- dTrain$y
 ScatterHistN(projectedTrainIdeal,'PC1','PC2','y',
                "Ideal Data projected to first two principal components")
+
+# prof murray code
+## Approximate Example used in Figure 6.15 Using 1) eigenvalues and eigenvectors and 2) built-in function prcomp()
+## to find first principal component values
+rm(list=ls())
+##Create some data of advertising versus population
+set.seed(5082)
+n<-30
+pop<-rnorm(n,40,10)
+eps1<-rnorm(n,0,1.5)
+ad<-3 + 0.5*pop + eps1
+par(mfrow=c(3,1))
+plot(pop,ad,xlim=c(0,70),ylim=c(0,40),main='Raw x-data')
+x<-matrix(c(ad,pop),nrow=n,byrow=F)
+#Center x
+i<-rep(1,n)
+x<-x-i %*% t(i) %*% x*(1/n)  #Center
+##Derive eigenvalues and eigenvectors
+eigen.x<-eigen(cov(x))
+(vals<-eigen.x$values)
+(vecs<-eigen.x$vectors)
+##Compute principal component scores using first eigenvector values (loadings)
+z1<-x %*% vecs[,1]    #First PC - this is formula 6.19 - don't need to subtract means of pop and ad since data has been centered
+z2<-x %*% vecs[,2]    #Second PC
+##Get the same result using built-in function prcomp()
+princomp.x<-prcomp(x)
+(vectors<-princomp.x$rotation)
+z1alt<-x %*% vectors[,1]
+z2alt<-x %*% vectors[,2]
+#Compare
+head(data.frame(z1,z1alt,z2,z2alt))
+ 
+#Plot the projection
+plot(z1,rep(0,n),xlim=c(-30,30),ylim=c(-1,1),type='p',axes=F,col='blue',ylab='',main='First Principal Component')
+axis(1, pos=0)
+ 
+plot(z2,rep(0,n),xlim=c(-5,5),ylim=c(-1,1),type='p',axes=F,col='blue',ylab='',main='Second Principal Component')
+axis(1, pos=0)
