@@ -15,9 +15,11 @@
 
 # Make sure you have these packages before going through the example
 rm(list=ls())
+#install.packages("ISLR")
 #install.packages("pls")
 #install.packages("ggplot2")
-require(ISLR)
+#install.packages("reshape2")
+library(ISLR)
 library(pls)
 library(ggplot2)
 library(reshape2)
