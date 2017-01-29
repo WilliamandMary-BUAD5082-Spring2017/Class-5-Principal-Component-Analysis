@@ -163,7 +163,7 @@ plot(cumsum(pve), xlab="Principal Component", ylab= "Cumulative Proportion of Va
 # 3. Look at the mean and variance across all the columns for the grains
 # 4. Create a multiple linear regression model to understand the relationship between England GDP and grain prices
 # 5. Use the pcr function to do principal component regression with the grains as variables
-# 6. Print a plot showing the MSEP for each component
+# 6. Print a plot showing the MSE for each component
 # 7. Use the prcomp function to do principal component regression
 # 8. Reflection questions: 
 #   a. What is the grain with the highest price on average?
