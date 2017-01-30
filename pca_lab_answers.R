@@ -98,14 +98,13 @@ validationplot(pcr.fit, val.type="RMSEP")
 
 # PCR with test and training sets
 set.seed(1)
-x = model.matrix(Salary~., Hitters)[,-1]
 train = sample(1:nrow(x), nrow(x)/2)
 test = (-train)
 pcr.fit = pcr(Salary~., data=Hitters, subset=train, scale=TRUE, validation="CV")
 validationplot(pcr.fit, val.type="MSEP")
-pcr.pred = predict(pcr.fit, x[test,], ncomp=7)
 x = model.matrix(Salary~., Hitters)[,-1]
 y = Hitters$Salary
+pcr.pred = predict(pcr.fit, x[test,], ncomp=7)
 mean((pcr.pred-y[test])^2)
 # after building model with training data, use for full data
 pcr.fit = pcr(y~x, scale = TRUE, ncomp = 7)
@@ -171,3 +170,42 @@ plot(cumsum(pve), xlab="Principal Component", ylab= "Cumulative Proportion of Va
 #   b. Which predictor had the lowest variance?
 #   c. Which predictor had the highest variance?
 #   d. Which component number had the smallest rmse? 
+
+# 1. Import the dataset, merge two datasets, and remove NA cases [hint: omit years in merged dataframe]
+grains = read.csv("england_grains.csv", header=TRUE)
+gdp = read.csv("england_gdp.csv", header=TRUE)
+england = merge(gdp, grains, by="Year")
+#row.names(england) = england[,1]
+england = na.omit(england[-1])
+grains = na.omit(grains)
+
+# 2. Use ggplot2 to visualize the grains data [hint: use melt() first]
+grains_melt = melt(grains, id="Year")
+ggplot(data=grains_melt, aes(x=Year, y=value, colour=variable)) + geom_line() + ggtitle("Grain costs by Year in England")
+ggplot(data=gdp, aes(x=Year, y=GDP)) + geom_line() + ggtitle("GDP in England")
+
+# 3. Look at the mean and variance across all the columns for the grains
+apply(england, 2, mean)
+apply(england, 2, var)
+
+# 4. Create a multiple linear regression model to understand the relationship between England GDP and grain prices
+lm.fit = lm(GDP~., data=england)
+summary(lm.fit)
+
+# 5. Use the pcr function to do principal component regression with the grains as variables
+pcr.fit = pcr(GDP~., data=england, scale=TRUE, validation="CV")
+summary(pcr.fit)
+# 6. Print a plot showing the RMSEP for the components
+validationplot(pcr.fit, val.type="RMSEP")
+
+# 7. Use the prcomp function to do principal component regression
+pr.out = prcomp(england, scale=TRUE)
+pr.out$center
+pr.out$scale
+biplot(pr.out, scale=0)
+pr.out$sdev
+pr.var = pr.out$sdev^2
+pr.var
+pve = pr.var/sum(pr.var)
+pve
+plot(pve, xlab="Principal Component", ylab= "Proportion of Variance Explained", ylim = c(0,1), type="b")
