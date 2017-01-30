@@ -209,3 +209,4 @@ pr.var
 pve = pr.var/sum(pr.var)
 pve
 plot(pve, xlab="Principal Component", ylab= "Proportion of Variance Explained", ylim = c(0,1), type="b")
+
