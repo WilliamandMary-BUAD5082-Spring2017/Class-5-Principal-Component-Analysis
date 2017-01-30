@@ -98,14 +98,14 @@ validationplot(pcr.fit, val.type="RMSEP")
 
 # PCR with test and training sets
 set.seed(1)
-x = Hitters
+x = model.matrix(Salary~., Hitters)[,-1]
 train = sample(1:nrow(x), nrow(x)/2)
 test = (-train)
 pcr.fit = pcr(Salary~., data=Hitters, subset=train, scale=TRUE, validation="CV")
 validationplot(pcr.fit, val.type="MSEP")
+pcr.pred = predict(pcr.fit, x[test,], ncomp=7)
 x = model.matrix(Salary~., Hitters)[,-1]
 y = Hitters$Salary
-pcr.pred = predict(pcr.fit, x[test,], ncomp=7)
 mean((pcr.pred-y[test])^2)
 # after building model with training data, use for full data
 pcr.fit = pcr(y~x, scale = TRUE, ncomp = 7)
