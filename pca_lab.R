@@ -76,47 +76,45 @@ axis(1, pos=0)
 #________________________________________________
 ## | 3 | Principal Component Regression Example 1
 # This example shows a basical example of multiple linear regression which will help us explore Principal Linear Regression
+Hitters = na.omit(Hitters)
 
 # Explore a multiple linear regression model with all the variables from Hitters
 lm_fit = lm(Salary~., data=Hitters)
 summary(lm_fit)
-apply(Hitters, 2, mean) 
-apply(Hitters, 2, var)
+# Since pca looks to measure variance, we'll look at these columns as an example
+apply(Hitters[2:4], 2, mean) 
+apply(Hitters[2:4], 2, var)
 print(coef(lm_fit))
 
 # This example comes from Chapter 6.7.1 in ISLR 
-
-# Let's take a look at the PCR function
 set.seed(2)
-# The pcr() function allows us to standardize and print the cross-validation error for each M
+# The pcr() function allows us to standardize and print the 10 fold cross-validation error for each M
 pcr.fit = pcr(Salary~., data=Hitters, scale=TRUE, validation="CV")
-# Percentage of variance explained: how much do the number of components explain
+# Percentage of variance explained by number of components
 summary(pcr.fit)
-# Reports the root mean squared error as a plot
-validationplot(pcr.fit, val.type="MSEP")
+# Reports the root mean squared error prediction as a plot
+# adjcv will account for bias
+validationplot(pcr.fit, val.type="RMSEP")
 
 # PCR with test and training sets
 set.seed(1)
-# creates test and training sets
-x = model.matrix(Salary~., Hitters)[,-1]
-y = Hitters$Salary
 train = sample(1:nrow(x), nrow(x)/2)
 test = (-train)
-y.test = y[test]
 pcr.fit = pcr(Salary~., data=Hitters, subset=train, scale=TRUE, validation="CV")
 validationplot(pcr.fit, val.type="MSEP")
+x = model.matrix(Salary~., Hitters)[,-1]
+y = Hitters$Salary
 pcr.pred = predict(pcr.fit, x[test,], ncomp=7)
-mean((pcr.pred-y.test)^2)
-pcr.fit = pcr(y~x, scale=TRUE, ncomp=7)
+mean((pcr.pred-y[test])^2)
+# after building model with training data, use for full data
+pcr.fit = pcr(y~x, scale = TRUE, ncomp = 7)
 summary(pcr.fit)
-
 
 
 #________________________________________________
 ## | 4 | Principal Component Regression Example 2
 
 # This example comes from Chapter 10.4 in ISLR 
-
 states = row.names(USArrests)
 str(states)
 names(USArrests)
@@ -160,29 +158,15 @@ plot(cumsum(pve), xlab="Principal Component", ylab= "Cumulative Proportion of Va
 # Average cost of different grains in England during early 1900s
 
 #grains = read.csv("england_grains.csv", header=TRUE, row.names=1)
-# 1. Import the dataset, combine two datasets, and remove NA cases [hint: complete.cases()]
-# 2. Use ggplot2 to visualize the data
-# 3. Look at the mean and variance across all the columns for the grains
+# 1. Import the dataset, merge two datasets, and remove NA cases [hint: complete.cases()]
+# 2. Use ggplot2 to visualize the grains data. What do you notice about the grains data?
+# 3. Look at the mean and variance across all the columns for the merged dataframe
 # 4. Create a multiple linear regression model to understand the relationship between England GDP and grain prices
 # 5. Use the pcr function to do principal component regression with the grains as variables
-# 6. Print a plot showing the MSE for each component
+# 6. Print a plot showing the RMSEP for the components
 # 7. Use the prcomp function to do principal component regression
 # 8. Reflection questions: 
 #   a. What is the grain with the highest price on average?
-#   b. Which component number had the smallest mse? 
-
-# 1. Import the dataset and remove NA cases [hint: complete.cases()]
-grains = read.csv("england_grains.csv", header=TRUE)
-grains = grains[complete.cases(grains),]
-
-# 2. Use ggplot2 to visualize the data
-grains_melt = melt(grains, id="Year")
-
-# 2 plot the malt and wheat on the same axis
-# qplot(x=Year, data=grains)
-# ggplot(data=grains_melt),
-#      aes(x=date, y=value, colour=variable)) +
-#       geom_line()
-
-# Conduct a principal component regression on the grains dataset
-pcr.fit = pcr(Salary~., data=grains, scale=TRUE, validation="CV")
+#   b. Which predictor had the lowest variance?
+#   c. Which predictor had the highest variance?
+#   d. Which component number had the smallest rmse? 
